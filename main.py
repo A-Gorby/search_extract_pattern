@@ -29,7 +29,6 @@ def read_filter_data(data_source_dir, fn = None,
             df_01 = pd.read_excel(os.path.join(data_source_dir, fn), sheet_name=sh_n, nrows=n_rows)
         print("Входной файл: (строк, колонок):", df_01.shape)
         # print(df_01.columns)
-        print(f"Колонка для фильтра _00: '{filter_col}', Значение фильтра: '{filter_value}'")
         if not ((filter_col is None ) or (filter_col ==' ') or (filter_col == 'None')):
             print(f"Колонка для фильтра: '{filter_col}', Значение фильтра: '{filter_value}'")
             try:
