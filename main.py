@@ -14,7 +14,7 @@ import xlrd
 
 from utils_io import get_humanize_filesize
 
-def read_filter_data(data_source_dir, fn = '20240402_СМИТН_vs_раздел_НКМИ_2024_04_02_2059 rs.xlsx',
+def read_filter_data(data_source_dir, fn = None,
     sh_n = None, filter_col=None, filter_value=None,
     n_rows=None):
     """
@@ -29,7 +29,8 @@ def read_filter_data(data_source_dir, fn = '20240402_СМИТН_vs_раздел_
             df_01 = pd.read_excel(os.path.join(data_source_dir, fn), sheet_name=sh_n, nrows=n_rows)
         print("Входной файл: (строк, колонок):", df_01.shape)
         # print(df_01.columns)
-        if filter_col is not None:
+        print(f"Колонка для фильтра _00: '{filter_col}', Значение фильтра: '{filter_value}'")
+        if not ((filter_col is None ) or (filter_col ==' ') or (filter_col == 'None')):
             print(f"Колонка для фильтра: '{filter_col}', Значение фильтра: '{filter_value}'")
             try:
                 mask = (df_01[filter_col].notnull() & (df_01[filter_col]==filter_value))
@@ -37,6 +38,8 @@ def read_filter_data(data_source_dir, fn = '20240402_СМИТН_vs_раздел_
                 print("Входной файл с учетом фильтра: (строк, колонок):", df_02.shape)
             except Exception as err:
                 print(err)
+        else:
+            df_02 = df_01.copy()
 
     except Exception as err:
         print(err)

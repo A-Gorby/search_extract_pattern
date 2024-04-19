@@ -130,7 +130,7 @@ class FormsPatternSearch:
         form_item_layout = Layout(display='flex', flex_flow='row', justify_content='space-between')
         check_box_cols_with_data = Box([Label(value="Выберите Колонку с данными"),self.cols_with_data_drop_down], layout=form_item_layout)
 
-        self.cols_with_filter_drop_down = widgets.Dropdown( options=self.cols_file_01, value=None)
+        self.cols_with_filter_drop_down = widgets.Dropdown( options=[' '] + self.cols_file_01, value=' ')
         form_item_layout = Layout(display='flex', flex_flow='row', justify_content='space-between')
         check_box_cols_with_filter = Box([Label(value="Выберите (при необходимости) Колонку с фильром"), self.cols_with_filter_drop_down], layout=form_item_layout)
 
@@ -148,15 +148,20 @@ class FormsPatternSearch:
 
     def on_cols_with_filter_drop_down_change(self, change):
         self.col_with_filter = self.cols_with_filter_drop_down.value
-        try:
-            unique = self.get_uniuque_by_col_name_from_excel(self.data_source_dir, self.fn_01, self.selected_sheet, self.col_with_filter)
-            print("Уникальные значения для фильтра ", unique)
-            self.data_for_filter_drop_down.options = unique
+        if  self.col_with_filter is not None  and (self.col_with_filter != ' '):
+            try:
+                unique = self.get_uniuque_by_col_name_from_excel(self.data_source_dir, self.fn_01, self.selected_sheet, self.col_with_filter)
+                print("Уникальные значения для фильтра ", unique)
+                self.data_for_filter_drop_down.options = unique
 
-        except Exception as err:
+            except Exception as err:
+                self.col_with_filter_values = None
+                logger.error(str(err))
+                sys.exit(2)
+        else:
             self.col_with_filter_values = None
-            logger.error(str(err))
-            sys.exit(2)
+            self.data_for_filter_drop_down.options=None
+            self.data_for_filter_drop_down.value=None
 
     def on_data_for_filter_drop_down_change(self, change):
         self.filter_value = self.data_for_filter_drop_down.value
