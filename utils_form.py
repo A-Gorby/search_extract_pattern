@@ -5,7 +5,12 @@ import os
 import sys
 from ipywidgets import Layout, Box, Label
 
-from utils_io import logger
+# from utils_io import logger
+from utils_io import Logger
+
+logger = Logger().logger
+logger.propagate = False
+
 if len(logger.handlers) > 1:
     for handler in logger.handlers:
         logger.removeHandler(handler)
@@ -139,6 +144,7 @@ class FormsPatternSearch:
 
     def on_cols_with_data_drop_down_change(self, change):
         self.col_with_data = self.cols_with_data_drop_down.value
+        print("self.col_with_data:", self.col_with_data)
 
     def on_cols_with_filter_drop_down_change(self, change):
         self.col_with_filter = self.cols_with_filter_drop_down.value

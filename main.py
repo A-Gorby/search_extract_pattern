@@ -1,19 +1,58 @@
 import re
 from tqdm import tqdm
 tqdm.pandas()
-import os, sys
+import os
+import sys
+import glob
 import openpyxl
 import datetime
+import pandas as pd
+import numpy as np
+import humanize
+import re
+import xlrd
+
+from utils_io import get_humanize_filesize
+
+def read_filter_data(data_source_dir, fn = '20240402_СМИТН_vs_раздел_НКМИ_2024_04_02_2059 rs.xlsx',
+    sh_n = None, filter_col=None, filter_value=None,
+    n_rows=None):
+    """
+    """
+    df_01 = None
+    df_02 = None
+    # print(f"data_source_dir: '{data_source_dir}', fn: '{fn}', sheet_name: '{sh_n}'")
+    try:
+        if n_rows is None:
+            df_01 = pd.read_excel(os.path.join(data_source_dir, fn), sheet_name=sh_n)
+        else:
+            df_01 = pd.read_excel(os.path.join(data_source_dir, fn), sheet_name=sh_n, nrows=n_rows)
+        print("Входной файл: (строк, колонок):", df_01.shape)
+        # print(df_01.columns)
+        if filter_col is not None:
+            print(f"Колонка для фильтра: '{filter_col}', Значение фильтра: '{filter_value}'")
+            try:
+                mask = (df_01[filter_col].notnull() & (df_01[filter_col]==filter_value))
+                df_02 = df_01[mask]
+                print("Входной файл с учетом фильтра: (строк, колонок):", df_02.shape)
+            except Exception as err:
+                print(err)
+
+    except Exception as err:
+        print(err)
+
+
+    return df_01, df_02
 
 def get_xlsx_sheet_cols_widths(data_source_dir, fn, sheet_name):
-    worksheet = openpyxl.load_workbook(os.path.join(data_source_dir, forms.fn_01))
+    worksheet = openpyxl.load_workbook(os.path.join(data_source_dir, fn))
     # sheet = worksheet.active
     sheet = worksheet[sheet_name]
-    print(fn)
-    print(sheet_name, sheet)
-    print(list(sheet.column_dimensions))
+    # print(fn)
+    # print(sheet_name, sheet)
+    # print(list(sheet.column_dimensions))
     cols_widths_lst = [round(sheet.column_dimensions[c].width) for c in list(sheet.column_dimensions)]
-    print(cols_widths_lst)
+    # print(cols_widths_lst)
     return cols_widths_lst
 
 
@@ -42,7 +81,7 @@ def save_to_excel(
                 worksheet.set_column(i_w, i_w, w, None)
             worksheet.autofilter(0, 0, data_df.shape[0], data_df.shape[1]-1)
     print(fn_save)
-    !du -h "$data_processed_dir"/"$fn_save"
+    print(get_humanize_filesize(data_processed_dir, fn_save))
     return fn_save
 
 def extract_words(s, preposition):
@@ -71,6 +110,7 @@ def apply_extract_words_split_rows(df_input, preposition, col_source='Харак
     """
     df_output = df_input.copy()
     output_lst = []
+    print(f"apply_extract_words_split_rows: col_source: '{col_source}'")
     col_source_new = col_source
     if col_source==col_target:
         if col_source + ' pred' in df_output.columns:
@@ -92,9 +132,11 @@ def apply_extract_words_split_rows(df_input, preposition, col_source='Харак
             d_source.update({col_target: words_part})
             output_lst.append(d_source)
         d_source = dict(row)
-        if s_cut is not None:
+        # if s_cut is not None:
+        if (type(s_cut)==str):
             s_cut = s_cut.strip()   # обрехать пробелы с краев
-            s_cut = re.sub(r"\s+", r"\s", s_cut) # сократить  "внутренние" пробелы от двух и больше до одного
+            # s_cut = re.sub(r"\s+", r"\s", s_cut) # сократить  "внутренние" пробелы от двух и больше до одного
+            s_cut = re.sub(r" +", r" ", s_cut) # сократить  "внутренние" пробелы от двух и больше до одного
         d_source.update({col_target: s_cut})
         output_lst.append(d_source)
 
@@ -111,23 +153,26 @@ def combine_sheet_name(sheet_name: str, preposition: str) -> str :
     sheet_name_len = len(sheet_name )
     preposition_len = len(preposition)
     ratio = max_sheet_name_length/(sheet_name_len + preposition_len)
-    print(ratio)
+    # print(ratio)
     new_sheet_name = sheet_name[:int(ratio*sheet_name_len)] + '_' + preposition[:int(ratio*preposition_len)]
 
     return new_sheet_name[:max_sheet_name_length]
 
 def search_extract_pattern(
-    data_source_dir, fn=None, sheet_name=None,
+    data_source_dir, data_processed_dir,
+    fn, sheet_name,
     col_source='Характеристика значение', col_target='Характеристика значение',
-    preposition='для ', 
+    col_with_filter=None, filter_value=None,
+    preposition='для аппарата', 
 ):
     """
     v01.01 19.04.2024 
     """
 
-    df_01, df_02 = read_filter_data(data_source_dir, forms.fn_01, forms.selected_sheet, forms.col_with_filter, forms.filter_value, n_rows=None)
+    df_01, df_02 = read_filter_data(data_source_dir, fn, sheet_name, col_with_filter, filter_value, n_rows=None)
     display(df_02.head())
     df_04 = apply_extract_words_split_rows(df_02, preposition=preposition, col_source=col_source, col_target=col_target)
+    # apply_extract_words_split_rows(df_input, preposition, col_source='Характеристика значение', col_target='Характеристика значение')
     print(); print()
     print(f"Выходной файл: (строк, колонок): {df_04.shape}")
     display(df_04.head())
