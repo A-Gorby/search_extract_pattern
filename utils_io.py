@@ -77,37 +77,6 @@ if len(logger.handlers) > 1:
     logger.propagate = False
 
 
-# def load_check_dictionaries_for_services(path_supp_dicts, path_esklp_processed):
-#     global df_services_MGFOMS, df_services_804n
-
-#     fn = 'Коды МГФОМС.xlsx'
-#     fn = 'Коды МГФОМС и 804н.xlsx'
-#     sheet_name = 'МГФОМС'
-#     df_services_MGFOMS = pd.read_excel(os.path.join(path_supp_dicts, fn), sheet_name = sheet_name)
-#     df_services_MGFOMS.rename (columns = {'COD': 'code', 'NAME': 'name'}, inplace=True)
-#     df_services_MGFOMS['code'] = df_services_MGFOMS['code'].astype(str)
-#     # print("df_services_MGFOMS", df_services_MGFOMS.shape, df_services_MGFOMS.columns)
-#     logger.info(f"Загружен справочник 'Услуги по реестру  МГФОМС': {str(df_services_MGFOMS.shape)}")
-
-#     sheet_name = '804н'
-#     df_services_804n = pd.read_excel(os.path.join(path_supp_dicts, fn), sheet_name = sheet_name, header=1)
-#     df_services_804n.rename (columns = {'Код услуги': 'code', 'Наименование медицинской услуги': 'name'}, inplace=True)
-#     # print("df_services_804n", df_services_804n.shape, df_services_804n.columns)
-#     logger.info(f"Загружен справочник 'Услуги по приказу 804н': {str(df_services_804n.shape)}")
-
-#     # path_supp_dicts_processed = 'D:/DPP/02_tkbd/data/supp_dict/processed/'
-#     # fn_df_mi_org_gos = 'df_mi_org_gos_release_20230129_2023_02_07_1331.pickle'
-#     # fn_df_mi_national = 'df_mi_national_release_20230201_2023_02_06_1013.pickle'
-#     # df_mi_org_gos = restore_df_from_pickle(path_supp_dicts_processed, fn_df_mi_org_gos)
-#     # df_mi_national = restore_df_from_pickle(path_supp_dicts_processed, fn_df_mi_national)
-
-#     fn_smnn_list_df_pickle = 'smnn_list_df_esklp_active_20221223_2022_12_26_0946.pickle'
-#     smnn_list_df = restore_df_from_pickle(path_esklp_processed, fn_smnn_list_df_pickle)
-#     fn_klp_list_dict_df_pickle = 'klp_list_dict_df_esklp_active_20221223_2022_12_26_0954.pickle'
-#     klp_list_dict_df = restore_df_from_pickle(path_esklp_processed, fn_klp_list_dict_df_pickle)
-
-#     return df_services_MGFOMS, df_services_804n, smnn_list_df, klp_list_dict_df #,  df_mi_org_gos, df_mi_national
-
 def unzip_file(path_source, fn_zip, work_path):
     logger.info('Unzip ' + fn_zip + ' start...')
 
