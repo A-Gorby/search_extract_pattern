@@ -170,12 +170,19 @@ class FormsPatternSearch:
 
     def form_param_03(self):
 
-        self.pttn_01_word_for_extract_enter = widgets.Text(placeholder='Слово...', value=None)
         form_item_layout = Layout(display='flex', flex_flow='row', justify_content='space-between')
-        text_for_pttn_01_word_for_extract = Box([Label(value="Введите слово для выделения"), self.pttn_01_word_for_extract_enter], layout=form_item_layout)
-        # self.radio_btn_similary_headers = widgets.RadioButtons(options=['Повторяет значения 1-го файла', 'Не повторяет'], value= 'Не повторяет')
 
-        form_items = [text_for_pttn_01_word_for_extract]
+        self.pttn_01_word_for_extract_enter = widgets.Text(placeholder='Слово...', value=None)
+        text_for_pttn_01_word_for_extract = Box([Label(value="Введите слово/слова/символы и вариант выделения"), self.pttn_01_word_for_extract_enter], layout=form_item_layout)
+        
+        self.radio_btn_variance = widgets.RadioButtons(options=['Только указанные слова/символы', 'Начиная с фразы - и до конца строки'], 
+                                                       value= 'Только указанные слова/символы', disabled=False,
+                                                       #description='Вариант паттерна',indent=False,
+                                                       #layout=form_item_layout,
+        )
+        radio_btn_01 = Box([Label(value="Вариант паттерна"), self.radio_btn_variance], layout=form_item_layout)
+
+        form_items = [text_for_pttn_01_word_for_extract, self.radio_btn_variance]
 
         self.form_03 = Box(form_items, layout=Layout(display='flex', flex_flow= 'column', border='solid 2px', align_items='stretch', width='75%')) #width='auto'))
 

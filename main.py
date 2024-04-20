@@ -86,19 +86,26 @@ def save_to_excel(
     print(get_humanize_filesize(data_processed_dir, fn_save))
     return fn_save
 
-def extract_words(s, preposition):
+def extract_words(s, preposition, pattern_variance, debug=False):
     """
     v01.02 18.04.2024
+    v01.03 20.04.2024 add pattern_variance
     """
     s_cut = s
     words_part = None
     if s is None or (type(s)!=str):
         return None, s
-    pttn_re_single = fr"{preposition}"
+    match(pattern_variance):
+        case 'Только указанные слова/символы':  
+            pttn_re_single = fr"{preposition}"
+        case 'Начиная с фразы - и до конца строки':
+            pttn_re_single = fr"{preposition}.*"
+        case _:
+            pttn_re_single = fr"{preposition}"
     try:
         m = re.search(pttn_re_single, s, flags=re.I)
     except Exception as err:
-        print(err)
+        if debug: print(err)
         m = re.search(re.escape(pttn_re_single), s, flags=re.I)
     if m is not None:
         words_part = m.group()
@@ -106,13 +113,13 @@ def extract_words(s, preposition):
 
     return words_part, s_cut
 
-def apply_extract_words_split_rows(df_input, preposition, col_source='Характеристика значение', col_target='Характеристика значение'):
+def apply_extract_words_split_rows(df_input, preposition, pattern_variance, col_source='Характеристика значение', col_target='Характеристика значение'):
     """
     v 01.01 18.04.2024
+    v 01.02 20.04.2024 add pattern_variance
     """
     df_output = df_input.copy()
     output_lst = []
-    print(f"apply_extract_words_split_rows: col_source: '{col_source}'")
     col_source_new = col_source
     if col_source==col_target:
         if col_source + ' pred' in df_output.columns:
@@ -129,7 +136,7 @@ def apply_extract_words_split_rows(df_input, preposition, col_source='Харак
 
     for i_row, row in tqdm(df_output.iterrows(), total = df_output.shape[0]):
         d_source = dict(row)
-        words_part, s_cut = extract_words(row[col_source_new], preposition)
+        words_part, s_cut = extract_words(row[col_source_new], preposition, pattern_variance)
         if words_part is not None:
             d_source.update({col_target: words_part})
             output_lst.append(d_source)
@@ -139,13 +146,14 @@ def apply_extract_words_split_rows(df_input, preposition, col_source='Харак
             s_cut = s_cut.strip()   # обрехать пробелы с краев
             # s_cut = re.sub(r"\s+", r"\s", s_cut) # сократить  "внутренние" пробелы от двух и больше до одного
             s_cut = re.sub(r" +", r" ", s_cut) # сократить  "внутренние" пробелы от двух и больше до одного
-        d_source.update({col_target: s_cut})
-        output_lst.append(d_source)
+            if len(s_cut) > 0:
+                d_source.update({col_target: s_cut})
+                output_lst.append(d_source)
 
     df_output = pd.DataFrame(output_lst)
     return df_output
 
-def combine_sheet_name(sheet_name: str, preposition: str) -> str : 
+def combine_sheet_name(sheet_name: str, preposition: str) -> str :
     """
     v 01.01 19.04.2024
     """
@@ -165,16 +173,17 @@ def search_extract_pattern(
     fn, sheet_name,
     col_source='Характеристика значение', col_target='Характеристика значение',
     col_with_filter=None, filter_value=None,
-    preposition='для аппарата', 
+    preposition='для аппарата',
+    pattern_variance='Только указанные слова/символы', #'Начиная с фразы - и до конца строки', 
 ):
     """
-    v01.01 19.04.2024 
+    v01.01 19.04.2024
+    v01.02 19.04.2024 add pattern_variance
     """
 
     df_01, df_02 = read_filter_data(data_source_dir, fn, sheet_name, col_with_filter, filter_value, n_rows=None)
     display(df_02.head())
-    df_04 = apply_extract_words_split_rows(df_02, preposition=preposition, col_source=col_source, col_target=col_target)
-    # apply_extract_words_split_rows(df_input, preposition, col_source='Характеристика значение', col_target='Характеристика значение')
+    df_04 = apply_extract_words_split_rows(df_02, preposition=preposition, pattern_variance=pattern_variance, col_source=col_source, col_target=col_target)
     print(); print()
     print(f"Выходной файл: (строк, колонок): {df_04.shape}")
     display(df_04.head())
